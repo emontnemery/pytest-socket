@@ -255,3 +255,29 @@ def test_enabling_unix_domain_sockets_with_disable_socket(testdir):
     """)
     result = testdir.runpytest("--verbose", "--disable-socket", "--allow-unix-socket")
     result.assert_outcomes(passed=1, skipped=0, failed=1)
+
+
+@pytest.mark.skip
+def test_parametrize(testdir):
+    testdir.makepyfile("""
+        import pytest
+        import requests
+
+
+        @pytest.mark.parametrize(
+            "url",
+            [
+                "https://google.com",
+                "https://amazon.com",
+                "https://microsoft.com",
+            ],
+        )
+        def test_domain(url, socket_enabled):
+            requests.get(url)
+    """)
+    testdir.makeini("""
+        [pytest]
+        addopts = --disable-socket --allow-hosts=127.0.0.1
+    """)
+    result = testdir.runpytest("--verbose")
+    result.assert_outcomes(passed=0, skipped=0, failed=3)
